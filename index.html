@@ -41,23 +41,26 @@
         document.getElementById('login-btn').addEventListener('click', async () => {
             const codeVerifier = generateRandomString(64);
             localStorage.setItem('pkce_code_verifier', codeVerifier); // 交換時に使うため保存
-
+        
             const hashed = await sha256(codeVerifier);
             const codeChallenge = base64urlencode(hashed);
-
-            // const authUrl = `https://app.asana.com/-/oauth_authorize?` +
-            //     `response_type=code&` +
-            //     `client_id=${CLIENT_ID}&` +
-            //     `redirect_uri=${encodeURIComponent(REDIRECT_URI)}&` +
-            //     `code_challenge=${codeChallenge}&` +
-            //     `code_challenge_method=S256&` +
-            //     `scope=openid%20profile%20email&` +
-            //     `state=${generateRandomString(16)}`;
-
-            const authUrl = `https://app.asana.com/-/oauth_authorize?response_type=code&client_id=1212462676621769&redirect_uri=https%3A%2F%2Fishibashi-futos.github.io%2Fasana-pkce%2F&scope=openid%20email%20profile%20users%3Aread&state=${generateRandomString(16)}`
+        
+            // スコープは画像の設定 に合わせて
+            // openid, email, profile の3つだけに絞ります。
+            const scope = encodeURIComponent('openid email profile');
+        
+            // テンプレートリテラルを使用して、パラメータを確実に含めます
+            const authUrl = `https://app.asana.com/-/oauth_authorize?` +
+                `response_type=code&` +
+                `client_id=${CLIENT_ID}&` +
+                `redirect_uri=${encodeURIComponent(REDIRECT_URI)}&` +
+                `code_challenge=${codeChallenge}&` +
+                `code_challenge_method=S256&` + // ネイティブアプリ設定ではこれが必須です
+                `scope=${scope}&` +
+                `state=${generateRandomString(16)}`;
+        
             window.location.href = authUrl; // Asanaへリダイレクト
         });
-
         // --- 3. コールバック処理 (トークン交換とデータ取得) ---
         window.onload = async () => {
             const urlParams = new URLSearchParams(window.location.search);
