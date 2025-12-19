@@ -90,9 +90,11 @@
                         headers: { 'Authorization': `Bearer ${accessToken}` }
                     });
                     const userData = await userRes.json();
+                    // デバッグ用に中身をコンソールに出力
+                    document.getElementById('user-info').innerText = `こんにちは、${JSON.stringify(userData)} さん！`;
 
                     // OIDCレスポンスでは userData.name に直接名前が入っています
-                    document.getElementById('user-info').innerText = `こんにちは、${userData.name} さん！`;
+//                    document.getElementById('user-info').innerText = `こんにちは、${userData.name} さん！`;
                     document.getElementById('login-btn').style.display = 'none';
 
                 } catch (error) {
