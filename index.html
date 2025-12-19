@@ -83,20 +83,38 @@
                     });
 
                     const data = await response.json();
+                    console.log("Token Response:", data); // ← ここで access_token があるか確認
+
                     const accessToken = data.access_token;
-
+                    if (!accessToken) {
+                        console.error("トークンが取得できていません。エラー:", data.error);
+                        return;
+                    }
                     // --- ユーザー情報の取得 (エンドポイントを修正) ---
-                    const userRes = await fetch('https://app.asana.com/api/1.0/openid_connect/userinfo', {
-                        headers: { 'Authorization': `Bearer ${accessToken}` }
-                    });
-                    const userData = await userRes.json();
-                    // デバッグ用に中身をコンソールに出力
-                    document.getElementById('user-info').innerText = `こんにちは、${JSON.stringify(userData)} さん！`;
-
-                    // OIDCレスポンスでは userData.name に直接名前が入っています
-//                    document.getElementById('user-info').innerText = `こんにちは、${userData.name} さん！`;
-                    document.getElementById('login-btn').style.display = 'none';
-
+                    try {
+                        const userRes = await fetch('https://app.asana.com/api/1.0/openid_connect/userinfo', {
+                            headers: { 
+                                'Authorization': `Bearer ${accessToken}`,
+                                'Accept': 'application/json' 
+                            }
+                        });
+                    
+                        if (!userRes.ok) {
+                            const errorDetail = await userRes.json();
+                            console.error("ユーザー情報取得失敗:", errorDetail);
+                            document.getElementById('user-info').innerText = "認証エラーが発生しました。";
+                            return;
+                        }
+                    
+                        const userData = await userRes.json();
+                        console.log("UserData:", userData);
+                        
+                        // OIDCエンドポイントのレスポンスは userData.name です
+                        document.getElementById('user-info').innerText = `こんにちは、${userData.name} さん！`;
+                        document.getElementById('login-btn').style.display = 'none';
+                    } catch (e) {
+                        console.error("ネットワークエラー:", e);
+                    }
                 } catch (error) {
                     console.error('認証に失敗しました', error);
                 }
