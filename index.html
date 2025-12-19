@@ -51,6 +51,7 @@
                 `redirect_uri=${encodeURIComponent(REDIRECT_URI)}&` +
                 `code_challenge=${codeChallenge}&` +
                 `code_challenge_method=S256&` +
+                `scope=openid%20profile%20email&` +
                 `state=${generateRandomString(16)}`;
 
             window.location.href = authUrl; // Asanaへリダイレクト
@@ -84,13 +85,14 @@
                     const data = await response.json();
                     const accessToken = data.access_token;
 
-                    // ユーザー情報の取得
-                    const userRes = await fetch('https://app.asana.com/api/1.0/users/me', {
+                    // --- ユーザー情報の取得 (エンドポイントを修正) ---
+                    const userRes = await fetch('https://app.asana.com/api/1.0/openid_connect/userinfo', {
                         headers: { 'Authorization': `Bearer ${accessToken}` }
                     });
                     const userData = await userRes.json();
 
-                    document.getElementById('user-info').innerText = `こんにちは、${userData.data.name} さん！`;
+                    // OIDCレスポンスでは userData.name に直接名前が入っています
+                    document.getElementById('user-info').innerText = `こんにちは、${userData.name} さん！`;
                     document.getElementById('login-btn').style.display = 'none';
 
                 } catch (error) {
